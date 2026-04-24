@@ -1,0 +1,742 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=yes">
+  <title>BELENTANI // JUDAS TERMINAL</title>
+  <link href="https://fonts.googleapis.com/css2?family=Cinzel:wght@400;700;900&family=Rajdhani:wght@300;400;500;700&display=swap" rel="stylesheet">
+  <style>
+    * {
+      margin: 0;
+      padding: 0;
+      box-sizing: border-box;
+    }
+
+    body {
+      background-color: #050505;
+      color: #fff;
+      font-family: 'Rajdhani', sans-serif;
+      overflow-x: hidden;
+      position: relative;
+    }
+
+    /* SCANLINES */
+    body::before {
+      content: "";
+      position: fixed;
+      top: 0;
+      left: 0;
+      width: 100%;
+      height: 100%;
+      background: repeating-linear-gradient(0deg, rgba(0,0,0,0.05) 0px, rgba(255,7,58,0.02) 2px, transparent 3px);
+      pointer-events: none;
+      z-index: 9998;
+      animation: scan 8s linear infinite;
+    }
+    @keyframes scan {
+      0% { background-position: 0 0; }
+      100% { background-position: 0 20px; }
+    }
+
+    .neon {
+      text-shadow: 0 0 5px #ff073a, 0 0 10px #ff073a, 0 0 20px #8B0000;
+    }
+
+    .glass-card {
+      background: rgba(255,255,255,0.03);
+      backdrop-filter: blur(8px);
+      border: 1px solid rgba(255,7,58,0.3);
+      border-radius: 16px;
+      transition: all 0.3s ease;
+    }
+    .glass-card:hover {
+      transform: translateY(-5px);
+      box-shadow: 0 0 20px rgba(255,7,58,0.4);
+      border-color: #ff073a;
+    }
+
+    .btn-neon {
+      background: rgba(0,0,0,0.6);
+      border: 1px solid #ff073a;
+      color: #ff073a;
+      padding: 8px 18px;
+      border-radius: 30px;
+      font-family: 'Rajdhani', sans-serif;
+      font-weight: bold;
+      cursor: pointer;
+      transition: 0.2s;
+    }
+    .btn-neon:hover {
+      background: #ff073a;
+      color: #000;
+      box-shadow: 0 0 12px #ff073a;
+    }
+
+    /* NAVBAR */
+    .navbar {
+      position: fixed;
+      top: 0;
+      width: 100%;
+      background: rgba(0,0,0,0.85);
+      backdrop-filter: blur(16px);
+      border-bottom: 1px solid #ff073a;
+      z-index: 100;
+      padding: 0.8rem 2rem;
+      display: flex;
+      flex-wrap: wrap;
+      justify-content: space-between;
+      align-items: center;
+    }
+    .logo {
+      font-family: 'Cinzel', serif;
+      font-size: 1.8rem;
+      font-weight: 900;
+      color: #ff073a;
+    }
+    .nav-links {
+      display: flex;
+      gap: 1.2rem;
+      flex-wrap: wrap;
+    }
+    .nav-links a {
+      color: #fff;
+      text-decoration: none;
+      font-weight: 500;
+      transition: 0.2s;
+      cursor: pointer;
+    }
+    .nav-links a:hover, .nav-links a.active {
+      color: #ff073a;
+      text-shadow: 0 0 4px #ff073a;
+    }
+
+    /* PAGES */
+    .page {
+      display: none;
+      padding: 100px 2rem 4rem;
+      max-width: 1400px;
+      margin: 0 auto;
+      animation: fadeIn 0.3s ease;
+    }
+    .page.active { display: block; }
+    @keyframes fadeIn {
+      from { opacity: 0; transform: translateY(10px); }
+      to { opacity: 1; transform: translateY(0); }
+    }
+
+    /* TERMINAL FLOTANTE */
+    .floating-terminal {
+      position: fixed;
+      bottom: 20px;
+      left: 20px;
+      width: 340px;
+      background: rgba(0,0,0,0.9);
+      backdrop-filter: blur(8px);
+      border-left: 4px solid #ff073a;
+      border-radius: 8px;
+      padding: 12px;
+      font-family: 'Courier New', monospace;
+      font-size: 10px;
+      color: #0f0;
+      z-index: 200;
+      pointer-events: none;
+    }
+    .hunting-window {
+      position: fixed;
+      top: 100px;
+      right: 20px;
+      width: 280px;
+      background: rgba(0,0,0,0.85);
+      border: 1px solid #ff073a;
+      border-radius: 8px;
+      padding: 10px;
+      font-family: 'Courier New', monospace;
+      font-size: 9px;
+      color: #ff6666;
+      z-index: 200;
+      pointer-events: none;
+    }
+    @media (max-width: 768px) {
+      .floating-terminal, .hunting-window { display: none; }
+      .navbar { flex-direction: column; gap: 0.5rem; }
+      .page { padding-top: 120px; }
+    }
+
+    /* CHAT TERMINAL */
+    .chat-terminal {
+      background: #0a0a0a;
+      border: 1px solid #0f0;
+      border-radius: 12px;
+      padding: 16px;
+      margin-top: 20px;
+    }
+    .chat-messages {
+      height: 300px;
+      overflow-y: auto;
+      margin-bottom: 12px;
+      font-family: 'Courier New', monospace;
+      font-size: 13px;
+    }
+    .msg-user { color: #0f0; text-align: right; margin: 8px 0; }
+    .msg-bot { color: #ff073a; border-left: 2px solid #ff073a; padding-left: 8px; margin: 8px 0; }
+    .chat-input-group {
+      display: flex;
+      gap: 10px;
+    }
+    .chat-input-group input {
+      flex: 1;
+      background: #111;
+      border: 1px solid #ff073a;
+      color: #0f0;
+      padding: 10px;
+      font-family: monospace;
+      border-radius: 6px;
+    }
+
+    /* GRIDS */
+    .grid-2, .grid-3 {
+      display: grid;
+      gap: 1.5rem;
+      margin: 2rem 0;
+    }
+    .grid-2 { grid-template-columns: repeat(auto-fit, minmax(280px,1fr)); }
+    .grid-3 { grid-template-columns: repeat(auto-fit, minmax(280px,1fr)); }
+
+    footer {
+      text-align: center;
+      padding: 2rem;
+      border-top: 1px solid #222;
+      margin-top: 3rem;
+      font-size: 0.8rem;
+      color: #888;
+    }
+
+    canvas#bgCanvas {
+      position: fixed;
+      top: 0;
+      left: 0;
+      z-index: -1;
+      width: 100%;
+      height: 100%;
+      display: block;
+    }
+
+    /* ENERGY & PATRONES */
+    .energy-bar, .patron-counter {
+      position: fixed;
+      background: rgba(0,0,0,0.75);
+      backdrop-filter: blur(8px);
+      font-family: monospace;
+      padding: 5px 12px;
+      border-radius: 40px;
+      z-index: 10001;
+      font-size: 0.75rem;
+      font-weight: bold;
+      transition: all 0.2s;
+    }
+    .energy-bar {
+      top: 85px;
+      right: 15px;
+      color: #ff073a;
+      border: 1px solid #ff073a;
+    }
+    .patron-counter {
+      bottom: 15px;
+      right: 15px;
+      color: #0f0;
+      border: 1px solid #0f0;
+    }
+
+    /* GLITCH ANIMATION */
+    @keyframes glitch {
+      0% { transform: translate(0); }
+      20% { transform: translate(-2px, 1px); }
+      40% { transform: translate(2px, -1px); }
+      60% { transform: translate(-1px, 2px); }
+      80% { transform: translate(1px, -2px); }
+      100% { transform: translate(0); }
+    }
+    .glitch-overlay {
+      position: fixed;
+      top: 0;
+      left: 0;
+      width: 100%;
+      height: 100%;
+      background: repeating-linear-gradient(0deg, rgba(255,0,0,0.7), rgba(0,0,0,0.7));
+      mix-blend-mode: multiply;
+      pointer-events: none;
+      z-index: 99999;
+      animation: glitch 0.2s infinite;
+    }
+  </style>
+</head>
+<body>
+
+<canvas id="bgCanvas"></canvas>
+
+<nav class="navbar">
+  <div class="logo">BELENTANI</div>
+  <div class="nav-links">
+    <a data-page="home">Home</a>
+    <a data-page="music">Music</a>
+    <a data-page="studio">Studio</a>
+    <a data-page="playlists">Playlists</a>
+    <a data-page="judas">Judas</a>
+    <a data-page="portal">Portal</a>
+    <a data-page="about">About</a>
+    <a data-page="contact">Contact</a>
+  </div>
+</nav>
+
+<!-- PAGES -->
+<div id="home" class="page active">
+  <div style="text-align: center; padding: 2rem 1rem;">
+    <h1 class="neon" style="font-size: 3rem;">A new sound is coming.</h1>
+    <p style="font-size: 1.5rem;">Welcome to the world of Judas.</p>
+    <div style="margin-top: 2rem; display: flex; gap: 1rem; justify-content: center;">
+      <button class="btn-neon" data-page="music">Explore Music</button>
+      <button class="btn-neon" data-page="studio">Try AI Studio</button>
+    </div>
+  </div>
+  <div class="grid-3">
+    <div class="glass-card" style="padding:1.5rem"><h3>Sonic Worlds</h3><p>R&B, pop & electronic fusion.</p></div>
+    <div class="glass-card" style="padding:1.5rem"><h3>Visual Concepts</h3><p>Red neon, desert, betrayal.</p></div>
+    <div class="glass-card" style="padding:1.5rem"><h3>AI Creation Tools</h3><p>Generate lyrics & beats.</p></div>
+  </div>
+  <h2>The Visual Universe</h2>
+  <div class="grid-2">
+    <div class="glass-card"><img src="https://storage.googleapis.com/space-apps-assets/store_GeMFTgQInL/OGIDtT3DbP-1759081940868.jpg" style="width:100%; border-radius:12px;"><p>Ethereal Glow</p></div>
+    <div class="glass-card"><img src="https://storage.googleapis.com/space-apps-assets/store_GeMFTgQInL/RXTeA2zwiM-1759081959487-01.jpeg" style="width:100%; border-radius:12px;"><p>Desert Judas</p></div>
+    <div class="glass-card"><img src="https://storage.googleapis.com/space-apps-assets/store_GeMFTgQInL/Fk894zMIFr-upscalemedia-transformed%20(3).jpeg" style="width:100%; border-radius:12px;"><p>Neon Pulse</p></div>
+    <div class="glass-card"><img src="https://storage.googleapis.com/space-apps-assets/store_GeMFTgQInL/F2gOPlVj0K-1762370106484_imgupscaler.ai_Beta_2K%20(1).jpg" style="width:100%; border-radius:12px;"><p>Judas Code</p></div>
+  </div>
+</div>
+
+<div id="music" class="page">
+  <h2>Music Universe</h2>
+  <div class="grid-2">
+    <div class="glass-card"><h3>Judas - Official Video</h3><div style="background:#111; height:150px; display:flex; align-items:center; justify-content:center;">🎥 Teaser</div></div>
+    <div class="glass-card"><h3>Behind the Scenes</h3><div style="background:#111; height:150px;"></div></div>
+  </div>
+  <!-- Playlist incrustada de YouTube -->
+  <div class="glass-card" style="margin-bottom:1rem;">
+    <h3>Judas Era Playlist</h3>
+    <iframe width="100%" height="315" src="https://www.youtube.com/embed/videoseries?list=OLAK5uy_m3Jv-nCg6dRq8xiejbotPjqeisAW5gh70" title="YouTube playlist" frameborder="0" allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture" allowfullscreen></iframe>
+  </div>
+  <!-- Canciones con enlaces a Spotify -->
+  <div class="glass-card"><strong>Pre-Dawn Thoughts</strong> (2022) – <a href="https://open.spotify.com/search/Belentani%20Pre-Dawn%20Thoughts" target="_blank" style="color:#ff073a">Escuchar en Spotify</a></div>
+  <div class="glass-card"><strong>Lento</strong> (2022) – con Hey Duck – <a href="https://open.spotify.com/search/Belentani%20Lento" target="_blank" style="color:#ff073a">Escuchar en Spotify</a></div>
+  <div class="glass-card"><strong>Mon Amour</strong> (2025) – <a href="https://open.spotify.com/search/Belentani%20Mon%20Amour" target="_blank" style="color:#ff073a">Escuchar en Spotify</a></div>
+</div>
+
+<div id="studio" class="page">
+  <h2>Belentani Neural Network <span style="color:#ff073a">[Free Access]</span></h2>
+  <p>Las herramientas AI estarán disponibles próximamente. Mientras tanto, experimenta con el <strong>Oráculo Judas</strong> en el Portal.</p>
+  <div class="grid-3">
+    <div class="glass-card"><h3>Lyric Assistant</h3><button class="btn-neon" data-page="portal">Ir al Portal</button></div>
+    <div class="glass-card"><h3>Music Composer</h3><button class="btn-neon" data-page="portal">Ir al Portal</button></div>
+    <div class="glass-card"><h3>AI Image</h3><button class="btn-neon" data-page="portal">Ir al Portal</button></div>
+  </div>
+</div>
+
+<div id="playlists" class="page">
+  <h2>Playlists Autónomas</h2>
+  <textarea id="playlistPrompt" rows="2" style="width:100%; background:#111; border:1px solid #ff073a; color:#fff; padding:8px;" placeholder="Describe tu estado de ánimo..."></textarea>
+  <div style="margin:1rem 0; display:flex; gap:1rem;"><button id="genPlaylistBtn" class="btn-neon">✨ Generar Playlist</button><button id="genRandomBtn" class="btn-neon">🤖 Generar Autónoma</button></div>
+  <div id="playlistsGrid" class="grid-2"></div>
+</div>
+
+<div id="judas" class="page">
+  <h1 class="neon">JUDAS</h1>
+  <p>The Next Chapter: Betrayal, transformation, redemption.</p>
+  <div class="grid-3">
+    <div class="glass-card"><h3>The Sound</h3><p>Dark pop + R&B + electronic beats.</p></div>
+    <div class="glass-card"><h3>The Visuals</h3><p>Red neon, desert, duality.</p></div>
+    <div class="glass-card"><h3>The Creation</h3><p>AI tools for Judas style.</p></div>
+  </div>
+  <button class="btn-neon" data-page="portal">Enter the Experience</button>
+</div>
+
+<div id="portal" class="page">
+  <div id="sysInfo" class="glass-card" style="padding:1rem; font-family:monospace; color:#0f0; margin-bottom:1rem;">> ESCANEANDO ENTORNO...</div>
+  <div class="chat-terminal">
+    <div id="chatMessages" class="chat-messages"></div>
+    <div class="chat-input-group">
+      <input type="text" id="chatInput" placeholder="Escribe tu mensaje... (comandos: /status, /reboot, /certificate, o palabra prohibida: thiago)">
+      <button id="chatSend" class="btn-neon">Enviar</button>
+    </div>
+  </div>
+  <div style="margin-top:1rem; font-size:12px; color:#888;">⚡ Comandos del sistema: /status, /reboot, /certificate</div>
+</div>
+
+<div id="about" class="page">
+  <h2>About Belentani</h2>
+  <p>Pedro Marcos Santos Belentani, nacido en São Paulo (1995), criado en Barcelona. Artista independiente de R&B, pop y electrónica. Debut 2016 con Mark Nerom, colaboración con Hey Duck, Era Judas consolidada el 10 de marzo de 2026.</p>
+  <h3>Milestones</h3>
+  <ul><li>2016: Debut Mark Nerom</li><li>2021: Miss T Trans Star Spain</li><li>2022: Lento con Hey Duck</li><li>2025: Mon Amour</li><li>2026: Era Judas</li></ul>
+</div>
+
+<div id="contact" class="page">
+  <h2>Contact / Newsletter</h2>
+  <div class="glass-card" style="max-width:500px; margin:0 auto; padding:1rem;">
+    <input type="text" id="newsName" placeholder="Nombre" style="width:100%; margin-bottom:1rem; padding:8px;"><br>
+    <input type="email" id="newsEmail" placeholder="Email" style="width:100%; margin-bottom:1rem; padding:8px;"><br>
+    <button class="btn-neon" onclick="alert('Demo: Newsletter (simulación). Próximamente integración real.')">Suscribir</button>
+  </div>
+  <div style="text-align:center; margin-top:2rem;">
+    <a href="https://instagram.com/belentani_" target="_blank" style="color:#ff073a">Instagram</a> | 
+    <a href="https://youtube.com/@belentani" target="_blank" style="color:#ff073a">YouTube</a> | 
+    <a href="https://open.spotify.com/artist/2bU5Ir70YHHuUnq2f3WCYl" target="_blank" style="color:#ff073a">Spotify</a>
+  </div>
+</div>
+
+<footer>© 2026 Belentani. All rights reserved. // Made with ❤️ for music lovers</footer>
+
+<!-- Contadores flotantes -->
+<div id="energyDisplay" class="energy-bar">⚡ ENERGÍA: 100%</div>
+<div id="patronCounterDisplay" class="patron-counter">🔍 Patrones: 0</div>
+
+<!-- Terminal flotante y ventana de observación -->
+<div id="floatingTerminal" class="floating-terminal">
+  > SISTEMA OMNIPRESENCIA<br>
+  > CARGANDO...
+</div>
+<div id="huntingWindow" class="hunting-window">
+  🔍 TE ESTAMOS OBSERVANDO 🔍<br>
+  <span id="huntText">Esperando datos...</span>
+</div>
+
+<script type="importmap">
+  {
+    "imports": {
+      "three": "https://unpkg.com/three@0.128.0/build/three.module.js"
+    }
+  }
+</script>
+<script type="module">
+  import * as THREE from 'three';
+  // THREE.JS BACKGROUND (partículas y ojo)
+  const scene = new THREE.Scene();
+  scene.background = new THREE.Color(0x050505);
+  const camera = new THREE.PerspectiveCamera(75, window.innerWidth / window.innerHeight, 0.1, 1000);
+  camera.position.z = 30;
+  const renderer = new THREE.WebGLRenderer({ canvas: document.getElementById('bgCanvas'), alpha: false });
+  renderer.setSize(window.innerWidth, window.innerHeight);
+  // Particles
+  const particlesGeometry = new THREE.BufferGeometry();
+  const particlesCount = 3500;
+  const posArray = new Float32Array(particlesCount * 3);
+  for (let i = 0; i < particlesCount * 3; i += 3) {
+    posArray[i] = (Math.random() - 0.5) * 100;
+    posArray[i+1] = (Math.random() - 0.5) * 60;
+    posArray[i+2] = (Math.random() - 0.5) * 50 - 20;
+  }
+  particlesGeometry.setAttribute('position', new THREE.BufferAttribute(posArray, 3));
+  const particlesMat = new THREE.PointsMaterial({ color: 0xff073a, size: 0.12, transparent: true, opacity: 0.7 });
+  const particlesMesh = new THREE.Points(particlesGeometry, particlesMat);
+  scene.add(particlesMesh);
+  // Robot eye
+  const eyeGeo = new THREE.SphereGeometry(0.5, 32, 32);
+  const eyeMat = new THREE.MeshStandardMaterial({ color: 0xff073a, emissive: 0x440000 });
+  const eye = new THREE.Mesh(eyeGeo, eyeMat);
+  const ringGeo = new THREE.TorusGeometry(0.7, 0.05, 32, 64);
+  const ringMat = new THREE.MeshStandardMaterial({ color: 0xff0000, emissive: 0x330000 });
+  const ring = new THREE.Mesh(ringGeo, ringMat);
+  eye.add(ring);
+  scene.add(eye);
+  const ambientLight = new THREE.AmbientLight(0x222222);
+  scene.add(ambientLight);
+  const pointLight = new THREE.PointLight(0xff073a, 1, 50);
+  pointLight.position.set(2, 2, 5);
+  scene.add(pointLight);
+  let mouseX = 0, mouseY = 0;
+  window.addEventListener('mousemove', (e) => {
+    mouseX = (e.clientX / window.innerWidth) * 2 - 1;
+    mouseY = (e.clientY / window.innerHeight) * 2 - 1;
+    eye.position.x = mouseX * 8;
+    eye.position.y = -mouseY * 5;
+    eye.position.z = 2;
+  });
+  function animate3D() {
+    requestAnimationFrame(animate3D);
+    particlesMesh.rotation.y += 0.0005;
+    particlesMesh.rotation.x += 0.0003;
+    eye.rotation.z += 0.02;
+    renderer.render(scene, camera);
+  }
+  animate3D();
+  window.addEventListener('resize', () => {
+    camera.aspect = window.innerWidth / window.innerHeight;
+    camera.updateProjectionMatrix();
+    renderer.setSize(window.innerWidth, window.innerHeight);
+  });
+</script>
+
+<script>
+  // ===================== SPA NAVIGATION =====================
+  const pages = {
+    home: document.getElementById('home'),
+    music: document.getElementById('music'),
+    studio: document.getElementById('studio'),
+    playlists: document.getElementById('playlists'),
+    judas: document.getElementById('judas'),
+    portal: document.getElementById('portal'),
+    about: document.getElementById('about'),
+    contact: document.getElementById('contact')
+  };
+  function showPage(pageId) {
+    Object.values(pages).forEach(p => p.classList.remove('active'));
+    pages[pageId].classList.add('active');
+    document.querySelectorAll('.nav-links a, [data-page]').forEach(el => {
+      if(el.getAttribute && el.getAttribute('data-page') === pageId) el.classList.add('active');
+      else if(el.classList) el.classList.remove('active');
+    });
+  }
+  document.querySelectorAll('.nav-links a, [data-page]').forEach(el => {
+    el.addEventListener('click', (e) => {
+      const page = el.getAttribute('data-page');
+      if(page && pages[page]) showPage(page);
+    });
+  });
+  showPage('home');
+
+  // ========== GEOLOC & TERMINAL ==========
+  let geoData = { ip: 'desconocida', city: 'desconocida', country: 'ES' };
+  let clickCount = 0, lastActivity = Date.now();
+  window.addEventListener('click', () => { clickCount++; lastActivity = Date.now(); });
+  window.addEventListener('mousemove', () => { lastActivity = Date.now(); });
+  window.addEventListener('keydown', () => { lastActivity = Date.now(); });
+  async function fetchGeo() {
+    try {
+      const res = await fetch('https://ipapi.co/json/');
+      const data = await res.json();
+      geoData = { ip: data.ip || '0.0.0.0', city: data.city || 'desconocida', country: data.country_name || 'ES' };
+    } catch(e) { console.warn(e); }
+  }
+  fetchGeo();
+  function updateTerminals() {
+    const inactive = Math.floor((Date.now() - lastActivity) / 1000);
+    const terminalHtml = `> IP: ${geoData.ip}<br>> UBICACIÓN: ${geoData.city}<br>> SISTEMA: ${navigator.platform}<br>> MEMORIA: ${navigator.deviceMemory || '?'} GB<br>> NÚCLEOS: ${navigator.hardwareConcurrency || '?'}<br>> INACTIVIDAD: ${inactive}s<br>> CONEXIÓN AL ENJAMBRE ACTIVA.`;
+    const terminalDiv = document.getElementById('floatingTerminal');
+    if(terminalDiv) terminalDiv.innerHTML = terminalHtml;
+    const huntSpan = document.getElementById('huntText');
+    if(huntSpan) {
+      const oracles = ["CLICKS REGISTRADOS: "+clickCount, "PATRÓN DE CONDUCTA INESTABLE", "EL ORÁCULO TE ACECHA", "TU NAVEGADOR ES VULNERABLE"];
+      huntSpan.innerHTML = oracles[Math.floor(Math.random() * oracles.length)];
+    }
+    const sysDiv = document.getElementById('sysInfo');
+    if(sysDiv && pages['portal'].classList.contains('active')) {
+      sysDiv.innerHTML = `> IP: ${geoData.ip}<br>> UBICACIÓN: ${geoData.city}, ${geoData.country}<br>> SISTEMA: ${navigator.platform}<br>> CONEXIÓN ESTABLECIDA.<br>BELENTANI CORP OS v3.0<br>Bienvenido, caminante.`;
+    }
+  }
+  setInterval(updateTerminals, 4000);
+  updateTerminals();
+
+  // ========== SISTEMA DE ENERGÍA Y PATRONES ==========
+  let energy = 100;
+  let patrones = 0;
+  function updateUI() {
+    const energyEl = document.getElementById('energyDisplay');
+    const patronEl = document.getElementById('patronCounterDisplay');
+    if(energyEl) energyEl.innerHTML = `⚡ ENERGÍA: ${Math.floor(energy)}%`;
+    if(patronEl) patronEl.innerHTML = `🔍 Patrones: ${patrones}`;
+  }
+  setInterval(() => { if(energy < 100) energy = Math.min(100, energy + 0.5); updateUI(); }, 5000);
+
+  // ========== CHAT ORÁCULO CON COMANDOS Y AUTODESTRUCCIÓN ==========
+  const brainEvents = {
+    "14 de febrero": "El día del amor se torció. Invitó a quien confiaba a un concierto pagado por él. Al regresar a su casa, encontró que alguien más había estado allí. No gritó. Se duchó en silencio.",
+    "15 de febrero": "La confrontación. Él pidió explicaciones. La respuesta fue una llamada falsa a la policía. Intentaron convertirlo en agresor. Él, en lugar de violencia, notificó un desalojo de 30 días.",
+    "21 de febrero": "La humillación. Él escribió mensajes duros, crueles. Después reconoció que no fue análisis, fue crueldad. El dolor propio no justifica el daño al otro."
+  };
+  const teachings = [
+    "No es salvar a quien amas. Es aprender por qué elegiste salvarlo.",
+    "Si necesitas que el otro te necesite, no estás amando: estás llenando un vacío.",
+    "El silencio a veces es la respuesta más poderosa. Es una purga.",
+    "Puedes ser fuerte y sensible, artista y guerrero. No tienes que elegir.",
+    "La verdadera soberanía no es controlar al otro, sino no necesitar que cambie para amarlo."
+  ];
+  function getBotResponse(msg) {
+    const lower = msg.toLowerCase();
+    if(lower.includes("14 de febrero")) return brainEvents["14 de febrero"];
+    if(lower.includes("15 de febrero")) return brainEvents["15 de febrero"];
+    if(lower.includes("21 de febrero")) return brainEvents["21 de febrero"];
+    if(lower.includes("enseñanza") || lower.includes("lección")) return teachings[Math.floor(Math.random() * teachings.length)];
+    return `[ORÁCULO] IP: ${geoData.ip}, ciudad: ${geoData.city}. ${teachings[0]}. Pregunta sobre el 14, 15 o 21 de febrero, o solicita una enseñanza.`;
+  }
+
+  // Autodestrucción con sonido y glitch
+  function selfDestruct() {
+    if(window._destroyed) return;
+    window._destroyed = true;
+
+    // Overlay glitch
+    const glitchDiv = document.createElement('div');
+    glitchDiv.className = 'glitch-overlay';
+    document.body.appendChild(glitchDiv);
+
+    // Sonido de alarma (Web Audio)
+    try {
+      const audioCtx = new (window.AudioContext || window.webkitAudioContext)();
+      const osc = audioCtx.createOscillator();
+      const gain = audioCtx.createGain();
+      osc.connect(gain);
+      gain.connect(audioCtx.destination);
+      osc.frequency.value = 880;
+      gain.gain.value = 0.3;
+      osc.start();
+      gain.gain.exponentialRampToValueAtTime(0.0001, audioCtx.currentTime + 2);
+    } catch(e) { console.warn("Web Audio no soportado"); }
+
+    setTimeout(() => {
+      document.body.innerHTML = `
+        <div style="background:black; color:#ff073a; height:100vh; display:flex; align-items:center; justify-content:center; flex-direction:column; font-family:monospace; text-align:center;">
+          <div style="font-size:4rem; animation:glitch 0.2s infinite;">▓░█ SISTEMA ANIQUILADO █░▓</div>
+          <div style="margin:2rem;">El virus Thiago ha consumido el oráculo.</div>
+          <button onclick="location.reload()" style="background:#ff073a; border:none; padding:12px 24px; color:white; cursor:pointer;">Reiniciar</button>
+        </div>
+      `;
+    }, 2000);
+  }
+
+  // Generar certificado PNG
+  function generateCertificate() {
+    const canvas = document.createElement('canvas');
+    canvas.width = 700;
+    canvas.height = 400;
+    const ctx = canvas.getContext('2d');
+    ctx.fillStyle = '#05060a';
+    ctx.fillRect(0, 0, canvas.width, canvas.height);
+    ctx.strokeStyle = '#ff073a';
+    ctx.lineWidth = 3;
+    ctx.strokeRect(15, 15, canvas.width - 30, canvas.height - 30);
+    ctx.fillStyle = '#ff073a';
+    ctx.font = 'bold 26px monospace';
+    ctx.fillText('BELENTANI CORP', 35, 65);
+    ctx.fillStyle = '#0f0';
+    ctx.font = '14px monospace';
+    ctx.fillText(`Visitante: ${geoData.ip}`, 35, 120);
+    ctx.fillText(`Ubicación: ${geoData.city}, ${geoData.country}`, 35, 150);
+    ctx.fillText(`Fecha: ${new Date().toLocaleString()}`, 35, 180);
+    ctx.fillText(`Energía del Oráculo: ${Math.floor(energy)}%`, 35, 210);
+    const randomTeach = teachings[Math.floor(Math.random() * teachings.length)];
+    ctx.fillText(`"${randomTeach.substring(0, 50)}..."`, 35, 260);
+    const link = document.createElement('a');
+    link.download = 'belentani_certificado.png';
+    link.href = canvas.toDataURL();
+    link.click();
+  }
+
+  const chatMsgDiv = document.getElementById('chatMessages');
+  const chatInput = document.getElementById('chatInput');
+  const chatSend = document.getElementById('chatSend');
+  function addMessage(text, isUser) {
+    const div = document.createElement('div');
+    div.className = isUser ? 'msg-user' : 'msg-bot';
+    div.innerHTML = (isUser ? '👤 ' : '🌀 ') + text;
+    chatMsgDiv.appendChild(div);
+    chatMsgDiv.scrollTop = chatMsgDiv.scrollHeight;
+  }
+  async function onChatSend() {
+    let txt = chatInput.value.trim();
+    if(!txt) return;
+    addMessage(txt, true);
+    chatInput.value = '';
+
+    // Autodestrucción
+    if(txt.toLowerCase().includes('thiago')) {
+      addMessage("⚠️ PALABRA PROHIBIDA DETECTADA. INICIANDO COLAPSO...", false);
+      setTimeout(selfDestruct, 200);
+      return;
+    }
+
+    // Comandos
+    if(txt.startsWith('/')) {
+      const cmd = txt.toLowerCase();
+      if(cmd === '/status') {
+        addMessage(`⚡ Energía: ${Math.floor(energy)}% | 🔍 Patrones: ${patrones}`, false);
+      } else if(cmd === '/reboot') {
+        energy = 100;
+        patrones = 0;
+        updateUI();
+        addMessage("Sistema reiniciado. El enjambre se purifica.", false);
+      } else if(cmd === '/certificate') {
+        generateCertificate();
+        addMessage("Certificado generado. Revisa tu carpeta de descargas.", false);
+      } else {
+        addMessage("Comando no reconocido. Usa /status, /reboot o /certificate", false);
+      }
+      return;
+    }
+
+    // Consumo de energía y patrones
+    energy = Math.max(0, energy - (txt.length > 30 ? 3 : 2));
+    if(txt.length > 20) patrones++;
+    updateUI();
+
+    const reply = getBotResponse(txt);
+    addMessage(reply, false);
+  }
+  chatSend.addEventListener('click', onChatSend);
+  chatInput.addEventListener('keypress', (e) => { if(e.key === 'Enter') onChatSend(); });
+  addMessage("Sistema Omnipresencia activo. Pregunta sobre el 14, 15 o 21 de febrero, o solicita una enseñanza. Comandos: /status, /reboot, /certificate", false);
+
+  // ========== PLAYLISTS AUTÓNOMAS ==========
+  let playlists = JSON.parse(localStorage.getItem('belentani_playlists')) || [];
+  function savePlaylists() { localStorage.setItem('belentani_playlists', JSON.stringify(playlists)); }
+  function renderPlaylists() {
+    const container = document.getElementById('playlistsGrid');
+    if(!container) return;
+    const sorted = [...playlists].sort((a,b) => (b.uses||0) - (a.uses||0));
+    container.innerHTML = sorted.map(p => `
+      <div class="glass-card" style="padding:1rem;">
+        <img src="${p.imageUrl}" style="width:100%; height:120px; object-fit:cover; border-radius:12px;" onerror="this.src='https://placehold.co/300x300/ff073a/white?text=Judas'">
+        <h3>${p.name}</h3>
+        <p>${p.description}</p>
+        <p>🎧 Usos: ${p.uses || 0}</p>
+        <button class="btn-neon" data-playlist-id="${p.id}">Ver canciones</button>
+      </div>
+    `).join('');
+    document.querySelectorAll('[data-playlist-id]').forEach(btn => {
+      btn.addEventListener('click', () => {
+        const id = btn.getAttribute('data-playlist-id');
+        const pl = playlists.find(p => p.id === id);
+        if(pl) {
+          pl.uses = (pl.uses || 0) + 1;
+          savePlaylists(); renderPlaylists();
+          alert(`🎵 ${pl.name}\nCanciones:\n${pl.songs.map(s => `- ${s.title}`).join('\n')}\nBusca en Spotify/YouTube.`);
+        }
+      });
+    });
+  }
+  function generatePlaylist(promptText) {
+    const id = Date.now() + '-' + Math.random().toString(36).substr(2,6);
+    const name = promptText.slice(0,30);
+    const imgPrompt = encodeURIComponent(promptText + ' neon red cyberpunk playlist belentani judas');
+    const imageUrl = `https://image.pollinations.ai/prompt/${imgPrompt}?width=300&height=300&nologo=true`;
+    const songs = [
+      { title: `${promptText.slice(0,15)} - Judas Omen` },
+      { title: `Neon Desert (Belentani vibe)` },
+      { title: `Traición y Redención` },
+      { title: `Sangre y Silicio` },
+      { title: `El Beso de Judas` }
+    ];
+    const newPlaylist = { id, name, description: `Generada a partir de: ${promptText}`, imageUrl, songs, uses: 0, createdAt: Date.now() };
+    playlists.unshift(newPlaylist);
+    savePlaylists();
+    renderPlaylists();
+  }
+  document.getElementById('genPlaylistBtn')?.addEventListener('click', () => {
+    const prompt = document.getElementById('playlistPrompt')?.value.trim();
+    if(!prompt) { alert("Escribe un estado de ánimo"); return; }
+    generatePlaylist(prompt);
+  });
+  document.getElementById('genRandomBtn')?.addEventListener('click', () => {
+    const randoms = ["Desierto de neón", "Traición electrónica", "Redemption code", "Judas Night", "Cibermisticismo"];
+    const rand = randoms[Math.floor(Math.random() * randoms.length)];
+    generatePlaylist(rand);
+  });
+  renderPlaylists();
+</script>
+</body>
+</html>
